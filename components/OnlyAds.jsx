@@ -24,14 +24,23 @@ import {
   Scan,
   Cookie as CookieIcon,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  Zap,
+  IndianRupee,
+  Copy,
+  Check,
+  Coins // Added Coins import
 } from 'lucide-react';
 
 // ==========================================
-// 🚨 CRITICAL: UPDATE THESE TWO LINES BELOW
+// 🚨 CRITICAL: UPDATE THESE CONFIGURATIONS
 // ==========================================
-const GOOGLE_AD_CLIENT = "ca-pub-4692687025606791";  // <--- 1. Replace with your AdSense Publisher ID
-const GOOGLE_AD_SLOT = "6463440686";                 // <--- 2. Replace with your Ad Unit Slot ID
+const GOOGLE_AD_CLIENT = "ca-pub-XXXXXXXXXXXXXXXX";  // 1. Your AdSense Publisher ID
+const GOOGLE_AD_SLOT = "1234567890";                 // 2. Your Ad Unit Slot ID
+
+// 💰 PAYMENT CONFIGURATION
+const UPI_ID = "onlyads@pthdfc";       
+const PAYPAL_USER = "dwahnil";         
 
 const CAPTIONS = [
   "My attention is expensive.",
@@ -66,23 +75,27 @@ const CAPTIONS = [
   "Welcome to the machine."
 ];
 
+// --- INTERNAL COMPONENT: INDIAN FLAG SVG ---
+const IndiaFlag = ({ className }) => (
+  <svg viewBox="0 0 30 20" className={className} xmlns="http://www.w3.org/2000/svg">
+    <rect width="30" height="20" fill="#138808"/>
+    <rect width="30" height="13.33" fill="#ffffff" y="0"/>
+    <rect width="30" height="6.66" fill="#FF9933" y="0"/>
+    <circle cx="15" cy="10" r="2.5" fill="#000080"/>
+  </svg>
+);
+
 // --- INTERNAL COMPONENT: AD UNIT ---
-// Handles the safe loading of Google Ads within React
 const AdUnit = ({ id, format }) => {
   useEffect(() => {
     try {
-      // Safely push to the AdSense array
       const adsbygoogle = window.adsbygoogle || [];
       adsbygoogle.push({});
-    } catch (e) {
-      // In development, this might error if adblock is on, which is fine
-      // console.error("AdSense Error:", e); 
-    }
+    } catch (e) {}
   }, []);
 
   return (
     <div className="w-full h-full bg-black relative flex items-center justify-center overflow-hidden">
-        {/* The Actual AdSense Tag */}
         <ins className="adsbygoogle"
              style={{ display: 'block', width: '100%', height: '100%' }}
              data-ad-client={GOOGLE_AD_CLIENT}
@@ -90,8 +103,6 @@ const AdUnit = ({ id, format }) => {
              data-ad-format="auto" 
              data-full-width-responsive="true"
         ></ins>
-        
-        {/* Fallback visual if ad is slow to load */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-20">
             <div className="text-center">
                 <span className="text-[10px] font-mono text-neutral-600 block">AD_SLOT_{id}</span>
@@ -105,22 +116,20 @@ const AdUnit = ({ id, format }) => {
 export default function OnlyAds() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false); 
+  const [showSupportModal, setShowSupportModal] = useState(false); 
   const [loading, setLoading] = useState(true);
   
-  // COOKIE STATE
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(null); 
 
-  // SHARE MODAL STATE
   const [showCaption, setShowCaption] = useState(true);
   const [currentCaption, setCurrentCaption] = useState(CAPTIONS[0]);
   const [isSharing, setIsSharing] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const cardRef = useRef(null);
 
-  // Track which slot is manually active (for mobile toggle)
   const [activeSlot, setActiveSlot] = useState(null);
   
-  // REAL DATA STATE
   const [systemInfo, setSystemInfo] = useState({
     userAgent: 'Scanning...',
     screenRes: 'Calculating...',
@@ -134,7 +143,6 @@ export default function OnlyAds() {
     dataUsed: '0 KB'
   });
 
-  // Generate dynamic slots with mixed layouts
   const adSlots = useMemo(() => {
     const layouts = ['portrait', 'portrait', 'square', 'landscape', 'portrait'];
     return Array.from({ length: 12 }, (_, i) => {
@@ -146,16 +154,11 @@ export default function OnlyAds() {
     });
   }, []);
 
-  // Helper to get classes based on slot type for MAIN GRID
   const getSlotDimensions = (type) => {
       switch (type) {
-          case 'landscape':
-              return 'md:col-span-2 aspect-[16/9]'; 
-          case 'square':
-              return 'col-span-1 aspect-square';    
-          case 'portrait':
-          default:
-              return 'col-span-1 aspect-[4/5]';     
+          case 'landscape': return 'md:col-span-2 aspect-[16/9]'; 
+          case 'square': return 'col-span-1 aspect-square';    
+          case 'portrait': default: return 'col-span-1 aspect-[4/5]';     
       }
   };
 
@@ -194,6 +197,30 @@ export default function OnlyAds() {
 
     setTimeout(() => {
       const end = performance.now();
+      
+      // Dynamic Asset Grades
+      const grades = [
+        "PRIME TARGET", 
+        "LOW YIELD", 
+        "DATA WHALE", 
+        "STANDARD UNIT", 
+        "HIGH PRIORITY", 
+        "GHOST", 
+        "PATTERN ANOMALY", 
+        "PREMIUM INVENTORY", 
+        "UNCATEGORIZED", 
+        "CONSUMER ELITE", 
+        "SHADOW PROFILE", 
+        "ZERO CLICK",
+        "SERVER BURDEN",
+        "VIP TRACKING",
+        "GLITCH DETECTED"
+      ];
+      
+      // 1% Chance to be LEGENDARY
+      const isLegendary = Math.random() < 0.01;
+      const randomGrade = isLegendary ? "LEGENDARY" : grades[Math.floor(Math.random() * grades.length)];
+
       setSystemInfo({
         userAgent: nav.userAgent,
         screenRes: window.screen ? `${window.screen.width}x${window.screen.height}` : 'Unknown',
@@ -203,7 +230,7 @@ export default function OnlyAds() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         latency: Math.round(end - start),
         sessionHash: `ID-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        dataValue: "PRIME TARGET",
+        dataValue: randomGrade,
         dataUsed: calculateDataUsed()
       });
       setLoading(false);
@@ -240,6 +267,34 @@ export default function OnlyAds() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCopyUPI = () => {
+      const textArea = document.createElement("textarea");
+      textArea.value = UPI_ID;
+      
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } else {
+             alert(`Could not auto-copy. UPI ID: ${UPI_ID}`);
+        }
+      } catch (err) {
+        console.error("Copy failed", err);
+        alert(`Could not auto-copy. UPI ID: ${UPI_ID}`);
+      }
+      
+      document.body.removeChild(textArea);
   };
 
   const handleShare = async () => {
@@ -488,16 +543,14 @@ export default function OnlyAds() {
             <CookieIcon size="20" className="group-hover:text-blue-500 transition-colors" />
           </button>
 
-          {/* Buy Me A Coffee */}
-          <a 
-            href="https://buymeacoffee.com/dwahnil" 
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* FUND PROTOCOL BUTTON */}
+          <button 
+            onClick={() => setShowSupportModal(true)}
             className="p-3 rounded-full bg-neutral-900 border border-neutral-800 text-white shadow-xl hover:border-yellow-600 hover:bg-black transition-all group"
-            title="Buy me a coffee"
+            title="Fund Protocol"
           >
-            <Coffee size="20" className="text-yellow-600 group-hover:text-yellow-500 transition-colors" />
-          </a>
+            <Coins size="20" className="text-yellow-600 group-hover:text-yellow-500 transition-colors" />
+          </button>
 
           {/* Go To Top */}
           <button 
@@ -508,6 +561,70 @@ export default function OnlyAds() {
             <ArrowUp size="20" className="text-neutral-400 group-hover:text-white transition-colors" />
           </button>
       </div>
+
+      {/* --- SUPPORT / FUND PROTOCOL MODAL --- */}
+      {showSupportModal && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 p-0 rounded-xl shadow-2xl relative overflow-hidden">
+             {/* Header */}
+             <div className="p-4 border-b border-neutral-800 bg-black flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                   <Coins size="18" className="text-yellow-500" />
+                   <h2 className="text-sm font-bold text-white uppercase tracking-widest">Fund Protocol</h2>
+                </div>
+                <button 
+                  onClick={() => setShowSupportModal(false)}
+                  className="text-neutral-500 hover:text-white transition-colors"
+                >
+                  <X size="20" />
+                </button>
+             </div>
+
+             <div className="p-6 flex flex-col items-center gap-6">
+                <p className="text-xs text-neutral-400 text-center font-mono leading-relaxed">
+                   Your contribution keeps the digital mirror live.
+                </p>
+
+                {/* UPI QR CODE WITH OVERLAID FLAG */}
+                <div className="bg-white p-2 rounded-lg shadow-lg relative flex items-center justify-center">
+                    <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}&pn=OnlyAds&cu=INR&bgcolor=ffffff`}
+                        alt="UPI Payment QR" 
+                        className="w-48 h-48 block"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="bg-white p-1 rounded shadow-sm">
+                           <IndiaFlag className="w-8 h-auto" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ACTIONS */}
+                <div className="w-full flex flex-col gap-2">
+                    <button 
+                        onClick={handleCopyUPI}
+                        className={`w-full flex items-center justify-center gap-2 py-3 bg-neutral-800 border border-neutral-700 rounded text-xs font-bold uppercase tracking-widest hover:bg-neutral-700 transition-colors ${isCopied ? 'bg-green-900/30 border-green-500/50 text-green-500' : ''}`}
+                    >
+                        {isCopied ? <Check size="14" /> : <Copy size="14" />}
+                        <span>{isCopied ? "COPIED!" : "Copy UPI ID"}</span>
+                        <IndiaFlag className="w-4 h-auto ml-1" />
+                    </button>
+
+                    {/* Optional PayPal Link if needed for Global */}
+                    <a 
+                        href={`https://paypal.me/${PAYPAL_USER}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded text-xs font-bold uppercase tracking-widest hover:bg-blue-500 transition-colors"
+                    >
+                        <Globe size="14" />
+                        <span>Global (PayPal)</span>
+                    </a>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* --- ABOUT / MANIFESTO MODAL --- */}
       {showAboutModal && (
@@ -621,9 +738,7 @@ export default function OnlyAds() {
             <div ref={cardRef} data-card-root className="bg-neutral-950 rounded-xl overflow-hidden border border-neutral-800 shadow-2xl relative text-left">
               {/* Card Header */}
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 flex justify-center items-center text-black w-full">
-                  {/* REMOVED: LayoutGrid Icon */}
-                  <span className="font-black tracking-tighter uppercase text-xl leading-none whitespace-nowrap">WELCOME TO MY ONLYADS</span>
-                  {/* REMOVED: Verified Scan Badge */}
+                  <span className="font-black tracking-tighter uppercase text-xl leading-none whitespace-nowrap">Check out my OnlyAds</span>
               </div>
 
               <div className="p-5 relative w-full">
@@ -640,7 +755,9 @@ export default function OnlyAds() {
                     </div>
                     <div className="flex flex-col w-1/2 text-right">
                         <p className="text-[10px] text-neutral-500 font-mono uppercase leading-none mb-1">Asset Grade</p>
-                        <p className="text-lg font-mono text-green-500 font-bold leading-none">{systemInfo.dataValue}</p>
+                        <p className={`text-lg font-mono font-bold leading-none ${systemInfo.dataValue === 'LEGENDARY' ? 'text-yellow-500 animate-pulse' : 'text-green-500'}`}>
+                          {systemInfo.dataValue}
+                        </p>
                     </div>
                   </div>
 
@@ -665,7 +782,7 @@ export default function OnlyAds() {
                   {/* Caption */}
                   {showCaption && (
                     <div className="text-center relative z-10 py-6 w-full">
-                        <p className="text-2xl sm:text-3xl font-black uppercase text-white leading-[0.9] tracking-tighter drop-shadow-2xl">
+                        <p className="text-2xl sm:text-3xl font-black uppercase text-white leading-tight tracking-tighter drop-shadow-xl">
                           "{currentCaption}"
                         </p>
                     </div>
