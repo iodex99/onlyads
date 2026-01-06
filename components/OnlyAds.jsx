@@ -29,7 +29,9 @@ import {
   IndianRupee,
   Copy,
   Check,
-  Coins // Added Coins import
+  Coins,
+  Pen,
+  Square // Added Square import for single view toggle
 } from 'lucide-react';
 
 // ==========================================
@@ -127,6 +129,12 @@ export default function OnlyAds() {
   const [isSharing, setIsSharing] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const cardRef = useRef(null);
+  
+  // Ref for the caption textarea to handle auto-resize and focus
+  const captionInputRef = useRef(null);
+
+  // New State for Share View Mode (Grid vs Single)
+  const [shareViewMode, setShareViewMode] = useState('grid'); // 'grid' | 'single'
 
   const [activeSlot, setActiveSlot] = useState(null);
   
@@ -198,26 +206,12 @@ export default function OnlyAds() {
     setTimeout(() => {
       const end = performance.now();
       
-      // Dynamic Asset Grades
       const grades = [
-        "PRIME TARGET", 
-        "LOW YIELD", 
-        "DATA WHALE", 
-        "STANDARD UNIT", 
-        "HIGH PRIORITY", 
-        "GHOST", 
-        "PATTERN ANOMALY", 
-        "PREMIUM INVENTORY", 
-        "UNCATEGORIZED", 
-        "CONSUMER ELITE", 
-        "SHADOW PROFILE", 
-        "ZERO CLICK",
-        "SERVER BURDEN",
-        "VIP TRACKING",
-        "GLITCH DETECTED"
+        "PRIME TARGET", "LOW YIELD", "DATA WHALE", "STANDARD UNIT", 
+        "HIGH PRIORITY", "GHOST", "PATTERN ANOMALY", "PREMIUM INVENTORY", 
+        "UNCATEGORIZED", "CONSUMER ELITE", "SHADOW PROFILE", "ZERO CLICK",
+        "SERVER BURDEN", "VIP TRACKING", "GLITCH DETECTED"
       ];
-      
-      // 1% Chance to be LEGENDARY
       const isLegendary = Math.random() < 0.01;
       const randomGrade = isLegendary ? "LEGENDARY" : grades[Math.floor(Math.random() * grades.length)];
 
@@ -255,6 +249,13 @@ export default function OnlyAds() {
     };
   }, [cookieConsent]);
 
+  useEffect(() => {
+    if (captionInputRef.current) {
+        captionInputRef.current.style.height = 'auto';
+        captionInputRef.current.style.height = captionInputRef.current.scrollHeight + 'px';
+    }
+  }, [currentCaption, showCaption]);
+
   const handleCookieResponse = (response) => {
     setCookieConsent(response);
     setShowCookieModal(false);
@@ -265,6 +266,18 @@ export default function OnlyAds() {
     setCurrentCaption(CAPTIONS[nextIndex]);
   };
 
+  const handleEditCaption = () => {
+      setShowCaption(true);
+      setTimeout(() => {
+          if (captionInputRef.current) {
+              captionInputRef.current.focus();
+              const val = captionInputRef.current.value;
+              captionInputRef.current.value = '';
+              captionInputRef.current.value = val;
+          }
+      }, 50);
+  };
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -272,12 +285,10 @@ export default function OnlyAds() {
   const handleCopyUPI = () => {
       const textArea = document.createElement("textarea");
       textArea.value = UPI_ID;
-      
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       textArea.style.top = "0";
       document.body.appendChild(textArea);
-      
       textArea.focus();
       textArea.select();
       
@@ -293,7 +304,6 @@ export default function OnlyAds() {
         console.error("Copy failed", err);
         alert(`Could not auto-copy. UPI ID: ${UPI_ID}`);
       }
-      
       document.body.removeChild(textArea);
   };
 
@@ -327,14 +337,31 @@ export default function OnlyAds() {
                         clonedCard.style.maxWidth = '400px';
                         clonedCard.style.margin = '0 auto';
                         clonedCard.style.borderRadius = '0';
-                        
-                        const allText = clonedCard.querySelectorAll('span, p, h1, h2, h3, h4, h5, h6');
-                        allText.forEach(el => {
-                            if (el.children.length === 0 && el.innerText.trim().length > 0) {
-                                el.style.position = 'relative';
-                                el.style.top = '-10px';
-                            }
-                        });
+                        clonedCard.style.height = 'auto'; 
+                        clonedCard.style.minHeight = 'auto';
+                    }
+
+                    const allText = clonedCard.querySelectorAll('span, p, h1, h2, h3, h4, h5, h6');
+                    allText.forEach(el => {
+                        if (el.tagName.toLowerCase() !== 'textarea' && el.children.length === 0 && el.innerText.trim().length > 0) {
+                            el.style.position = 'relative';
+                            el.style.top = '-10px';
+                        }
+                    });
+
+                    const clonedTextarea = clonedCard.querySelector('textarea');
+                    if (clonedTextarea) {
+                        const div = clonedDoc.createElement('div');
+                        div.innerText = currentCaption; 
+                        div.className = "w-full bg-transparent border-none text-center text-xl sm:text-2xl font-black uppercase text-white leading-tight tracking-tighter drop-shadow-xl";
+                        div.style.whiteSpace = 'pre-wrap'; 
+                        div.style.wordWrap = 'break-word'; 
+                        div.style.overflow = 'visible';
+                        div.style.display = 'block';
+                        div.style.height = 'auto'; 
+                        div.style.position = 'relative';
+                        div.style.top = '-10px'; 
+                        clonedTextarea.parentNode.replaceChild(div, clonedTextarea);
                     }
                 }
             }).then(canvas => {
@@ -348,8 +375,6 @@ export default function OnlyAds() {
                     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
                             await navigator.share({
-                                title: "OnlyAds Profile",
-                                text: "Check out my digital footprint on OnlyAds.",
                                 files: [file]
                             });
                         } catch (error) {
@@ -761,35 +786,53 @@ export default function OnlyAds() {
                     </div>
                   </div>
 
-                  {/* Visual Ad Grid */}
-                  <div className="flex flex-wrap relative z-10 -mx-1">
-                      {adSlots.slice(0, 4).map(slot => (
-                          <div key={slot.id} className="w-1/2 px-1 mb-2">
-                            <div className="aspect-[16/9] bg-neutral-900 rounded border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden group w-full">
-                                <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-500" />
-                                
-                                <span className="text-[9px] text-neutral-600 font-mono uppercase mb-1 tracking-widest leading-none">Target Slot {slot.id}</span>
-                                <div className="w-6 h-6 rounded bg-neutral-800 flex items-center justify-center text-neutral-500">
-                                    <Maximize size="10" />
-                                </div>
-
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500/20" />
+                  {/* Visual Ad Grid or Single Slot */}
+                  {shareViewMode === 'grid' ? (
+                    <div className="flex flex-wrap relative z-10 -mx-1">
+                        {adSlots.slice(0, 4).map(slot => (
+                            <div key={slot.id} className="w-1/2 px-1 mb-2">
+                              <div className="aspect-[16/9] bg-neutral-900 rounded border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden group w-full">
+                                  <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-500" />
+                                  <span className="text-[9px] text-neutral-600 font-mono uppercase mb-1 tracking-widest leading-none">Target Slot {slot.id}</span>
+                                  <div className="w-6 h-6 rounded bg-neutral-800 flex items-center justify-center text-neutral-500">
+                                      <Maximize size="10" />
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500/20" />
+                              </div>
                             </div>
-                          </div>
-                      ))}
-                  </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="relative z-10 mb-2">
+                         <div className="aspect-[16/9] bg-neutral-900 rounded border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden group w-full">
+                             <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-500" />
+                             <span className="text-[9px] text-neutral-600 font-mono uppercase mb-1 tracking-widest leading-none">Primary Target Slot</span>
+                             <div className="w-8 h-8 rounded bg-neutral-800 flex items-center justify-center text-neutral-500">
+                                 <Maximize size="14" />
+                             </div>
+                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500/20" />
+                         </div>
+                    </div>
+                  )}
 
-                  {/* Caption */}
+                  {/* Caption (Editable) */}
                   {showCaption && (
-                    <div className="text-center relative z-10 py-6 w-full">
-                        <p className="text-2xl sm:text-3xl font-black uppercase text-white leading-tight tracking-tighter drop-shadow-xl">
-                          "{currentCaption}"
-                        </p>
+                    <div className="text-center relative z-10 py-4 w-full px-2">
+                        <textarea
+                            ref={captionInputRef}
+                            value={currentCaption}
+                            onChange={(e) => setCurrentCaption(e.target.value)}
+                            className="w-full bg-transparent border-none focus:ring-0 text-center text-xl sm:text-2xl font-black uppercase text-white leading-tight tracking-tighter drop-shadow-xl resize-none overflow-hidden placeholder-white/30"
+                            rows={1}
+                            placeholder="WRITE YOUR OWN..."
+                            spellCheck="false"
+                            style={{ height: 'auto', minHeight: '1.5em' }}
+                        />
                     </div>
                   )}
 
                   {/* Brand Footer with QR */}
-                  <div className="mt-4 flex justify-between items-end relative z-10 pt-4 border-t border-neutral-800 w-full">
+                  <div className="mt-2 flex justify-between items-end relative z-10 pt-4 border-t border-neutral-800 w-full">
                       <div className="flex flex-col gap-1">
                           <div className="flex items-center">
                              <span className="text-xs font-bold text-neutral-300 tracking-widest uppercase leading-none block pt-0.5">OnlyAds.me</span>
@@ -820,17 +863,35 @@ export default function OnlyAds() {
                         <Quote size="16" />
                     </button>
                     {showCaption && (
-                        <button 
-                            onClick={refreshCaption}
-                            className="p-2 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                            title="New Caption"
-                        >
-                            <RefreshCcw size="16" />
-                        </button>
+                        <>
+                            <button 
+                                onClick={handleEditCaption}
+                                className="p-2 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                                title="Edit Caption"
+                            >
+                                <Pen size="16" />
+                            </button>
+                            <button 
+                                onClick={refreshCaption}
+                                className="p-2 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                                title="New Caption"
+                            >
+                                <RefreshCcw size="16" />
+                            </button>
+                        </>
                     )}
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {/* View Switcher Button */}
+                    <button 
+                        onClick={() => setShareViewMode(shareViewMode === 'grid' ? 'single' : 'grid')}
+                        className="p-2 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                        title={shareViewMode === 'grid' ? "Switch to Single View" : "Switch to Grid View"}
+                    >
+                        {shareViewMode === 'grid' ? <Square size="16" /> : <LayoutGrid size="16" />}
+                    </button>
+
                     <button 
                         className={`flex items-center gap-2 px-4 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest rounded hover:bg-neutral-200 transition-colors ${isSharing ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={handleShare}
