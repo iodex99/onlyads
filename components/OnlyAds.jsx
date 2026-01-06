@@ -534,7 +534,8 @@ export default function OnlyAds() {
               <div className="flex flex-col md:items-end gap-2 text-xs font-mono text-neutral-500">
                  <button onClick={() => setShowPrivacyModal(true)} className="hover:text-green-500 transition-colors uppercase tracking-widest text-left md:text-right">Privacy Protocols</button>
                  <button onClick={() => setShowTermsModal(true)} className="hover:text-green-500 transition-colors uppercase tracking-widest text-left md:text-right">Terms of Engagement</button>
-                 <a href="mailto:contact@onlyads.me" className="hover:text-green-500 transition-colors uppercase tracking-widest text-left md:text-right">Contact Admin</a>
+                 {/* UPDATED: Contact email to onlyads.me@rediffmail.com */}
+                 <a href="mailto:onlyads.me@rediffmail.com" className="hover:text-green-500 transition-colors uppercase tracking-widest text-left md:text-right">Contact</a>
               </div>
             </div>
         </div>
@@ -596,7 +597,7 @@ export default function OnlyAds() {
       {/* --- ABOUT / MANIFESTO MODAL --- */}
       {showAboutModal && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 p-0 rounded-xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-lg bg-neutral-900 border border-neutral-800 p-0 rounded-xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
              <div className="p-4 border-b border-neutral-800 bg-black flex justify-between items-center">
                 <div className="flex items-center gap-2">
                    <FileText size="18" className="text-purple-500" />
