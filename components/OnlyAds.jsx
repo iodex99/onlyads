@@ -39,8 +39,8 @@ import {
 // ==========================================
 // 🚨 CRITICAL: UPDATE THESE CONFIGURATIONS
 // ==========================================
-const GOOGLE_AD_CLIENT = "ca-pub-4692687025606791";  // <--- Updated Publisher ID
-const GOOGLE_AD_SLOT = "6463440686";                 // <--- Updated Slot ID
+const GOOGLE_AD_CLIENT = "ca-pub-4692687025606791";  // 1. Your AdSense Publisher ID
+const GOOGLE_AD_SLOT = "6463440686";                 // 2. Your Ad Unit Slot ID
 
 // 💰 PAYMENT CONFIGURATION
 const UPI_ID = "onlyads@pthdfc";       
@@ -92,14 +92,19 @@ const IndiaFlag = ({ className }) => (
 // --- INTERNAL COMPONENT: AD UNIT ---
 // Handles the safe loading of Google Ads within React
 const AdUnit = ({ id, format }) => {
+  const adRef = useRef(null);
+
   useEffect(() => {
-    try {
-      // Safely push to the AdSense array
-      const adsbygoogle = window.adsbygoogle || [];
-      adsbygoogle.push({});
-    } catch (e) {
-      // In development, this might error if adblock is on, which is fine
-      // console.error("AdSense Error:", e); 
+    // Check if the ad has already been requested to prevent double-loading in Strict Mode
+    if (adRef.current && !adRef.current.getAttribute('data-ad-status')) {
+      try {
+        const adsbygoogle = window.adsbygoogle || [];
+        adsbygoogle.push({});
+        // Mark as filled so we don't push again
+        adRef.current.setAttribute('data-ad-status', 'filled');
+      } catch (e) {
+        // console.error("AdSense Error:", e); 
+      }
     }
   }, []);
 
@@ -107,6 +112,7 @@ const AdUnit = ({ id, format }) => {
     <div className="w-full h-full bg-black relative flex items-center justify-center overflow-hidden">
         {/* The Actual AdSense Tag */}
         <ins className="adsbygoogle"
+             ref={adRef}
              style={{ display: 'block', width: '100%', height: '100%' }}
              data-ad-client={GOOGLE_AD_CLIENT}
              data-ad-slot={GOOGLE_AD_SLOT}
@@ -129,8 +135,8 @@ export default function OnlyAds() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false); 
   const [showSupportModal, setShowSupportModal] = useState(false); 
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false); // NEW
-  const [showTermsModal, setShowTermsModal] = useState(false);     // NEW
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false); 
+  const [showTermsModal, setShowTermsModal] = useState(false);     
   const [loading, setLoading] = useState(true);
   
   const [showCookieModal, setShowCookieModal] = useState(false);
@@ -300,12 +306,10 @@ export default function OnlyAds() {
   const handleCopyUPI = () => {
       const textArea = document.createElement("textarea");
       textArea.value = UPI_ID;
-      
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       textArea.style.top = "0";
       document.body.appendChild(textArea);
-      
       textArea.focus();
       textArea.select();
       
@@ -321,7 +325,6 @@ export default function OnlyAds() {
         console.error("Copy failed", err);
         alert(`Could not auto-copy. UPI ID: ${UPI_ID}`);
       }
-      
       document.body.removeChild(textArea);
   };
 
